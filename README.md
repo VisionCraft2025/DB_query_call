@@ -68,12 +68,6 @@ factory/query/logs/response
 
 ## 빌드 방법
 
-### 자동 빌드 (권장)
-```bash
-cd /home/kwon/Programming/DB/db_test/factory_monitor/db_query_call
-./build_with_qtmqtt.sh
-```
-
 ### 수동 빌드
 ```bash
 # 1. qtmqtt 라이브러리 빌드 (최초 1회)
