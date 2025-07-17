@@ -18,20 +18,43 @@ find_package(Qt6 QUIET COMPONENTS Mqtt)
 if(NOT Qt6Mqtt_FOUND)
     message(STATUS "Qt6Mqtt not found in system, trying custom path...")
     
-    # Windows에서 사용자 지정 qtmqtt 경로 (필요에 따라 수정)
+    # Windows에서 Qt Creator가 설치한 qtmqtt 경로 찾기
     if(WIN32)
-        # 사용자 정의 경로에서 qtmqtt 찾기 (Windows 경로)
-        find_path(QTMQTT_INCLUDE_DIR QtMqtt/QMqttClient
-            PATHS "C:/dev/qtmqtt/build/include"
-            "C:/Qt/qtmqtt/build/include"
-            "$ENV{USERPROFILE}/dev/qtmqtt/build/include"
-        )
+        # Qt 설치 경로 찾기 (Qt 버전을 동적으로 찾음)
+        file(GLOB QT_VERSIONS "C:/Qt/[0-9]*.[0-9]*.[0-9]*")
+        if(QT_VERSIONS)
+            # 가장 최신 버전 사용 (간단한 방법)
+            list(GET QT_VERSIONS -1 QT_LATEST_VERSION)
+            message(STATUS "Found Qt installation: ${QT_LATEST_VERSION}")
+            
+            # Qt 소스 디렉토리에서 qtmqtt 찾기
+            find_path(QTMQTT_INCLUDE_DIR QtMqtt/QMqttClient
+                PATHS "${QT_LATEST_VERSION}/Src/qtmqtt/include"
+                      "${QT_LATEST_VERSION}/msvc2019_64/include"
+                      "${QT_LATEST_VERSION}/mingw_64/include"
+            )
+            
+            find_library(QTMQTT_LIBRARY Qt6Mqtt
+                PATHS "${QT_LATEST_VERSION}/Src/qtmqtt/lib"
+                      "${QT_LATEST_VERSION}/msvc2019_64/lib"
+                      "${QT_LATEST_VERSION}/mingw_64/lib"
+            )
+        endif()
         
-        find_library(QTMQTT_LIBRARY Qt6Mqtt
-            PATHS "C:/dev/qtmqtt/build/lib"
-            "C:/Qt/qtmqtt/build/lib"
-            "$ENV{USERPROFILE}/dev/qtmqtt/build/lib"
-        )
+        # 백업 경로 - 사용자 정의 경로에서도 찾기
+        if(NOT QTMQTT_INCLUDE_DIR OR NOT QTMQTT_LIBRARY)
+            find_path(QTMQTT_INCLUDE_DIR QtMqtt/QMqttClient
+                PATHS "C:/Qt/Src/qtmqtt/include"
+                      "C:/dev/qtmqtt/build/include"
+                      "$ENV{USERPROFILE}/dev/qtmqtt/build/include"
+            )
+            
+            find_library(QTMQTT_LIBRARY Qt6Mqtt
+                PATHS "C:/Qt/Src/qtmqtt/lib"
+                      "C:/dev/qtmqtt/build/lib"
+                      "$ENV{USERPROFILE}/dev/qtmqtt/build/lib"
+            )
+        endif()
     endif()
     
     if(QTMQTT_INCLUDE_DIR AND QTMQTT_LIBRARY)
